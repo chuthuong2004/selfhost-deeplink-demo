@@ -1,0 +1,9 @@
+node_modules
+.env
+.env.local
+*.log
+.DS_Store
+data/
+server.js.backup
+test-server.js
+

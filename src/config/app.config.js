@@ -19,9 +19,9 @@ dotenv.config();
  */
 export const serverConfig = {
   port: process.env.PORT || 8080,
-  host: process.env.HOST || "0.0.0.0",
-  nodeEnv: process.env.NODE_ENV || "http://172.16.68.26:8080",
-  domain: process.env.DOMAIN || "",
+  host: process.env.HOST || "app-faix.vercel.app",
+  nodeEnv: process.env.NODE_ENV || "production",
+  domain: process.env.DOMAIN || "https://app-faix.vercel.app",
 };
 
 /**

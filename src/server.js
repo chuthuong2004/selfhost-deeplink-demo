@@ -155,54 +155,60 @@ const setupCleanupTask = () => {
   console.log('✅ Cleanup task scheduled (every 24 hours)');
 };
 
-// Start server
-app.listen(serverConfig.port, serverConfig.host, () => {
-  const localIp = getLocalIp();
-  
-  console.log('\n');
-  console.log('╔═══════════════════════════════════════════════════════╗');
-  console.log('║         🚀 FAI-X Deep Link Server Started            ║');
-  console.log('╚═══════════════════════════════════════════════════════╝');
-  console.log('\n');
-  console.log(`🌐 Server:      http://localhost:${serverConfig.port}`);
-  
-  if (localIp) {
-    console.log(`📱 LAN Access:  http://${localIp}:${serverConfig.port}`);
-  }
-  
-  console.log(`🔧 Environment: ${serverConfig.nodeEnv}`);
-  console.log(`📊 Domain:      ${serverConfig.domain}`);
-  console.log('\n');
-  console.log('📍 Available Endpoints:');
-  console.log('   GET  /health                  - Health check');
-  console.log('   GET  /share?productId=...     - Product share link');
-  console.log('   GET  /invite?ref=...          - Invite link');
-  console.log('   GET  /open?clickId=...        - App opening page');
-  console.log('   GET  /product/:id             - Direct product link');
-  console.log('   GET  /referrer/:id            - Get referral data');
-  console.log('   POST /api/product/generate-share-link');
-  console.log('   GET  /api/product/stats/:id');
-  console.log('   GET  /debug/referrals         - View all referrals');
-  console.log('   GET  /debug/stats             - View statistics');
-  console.log('\n');
-  console.log('💡 Example Usage:');
-  console.log(`   Share a product: http://localhost:${serverConfig.port}/share?productId=PROD123`);
-  console.log(`   Invite link:     http://localhost:${serverConfig.port}/invite?ref=USER456`);
-  console.log('\n');
-  console.log('✨ Ready to handle deep links!\n');
-  
-  // Setup periodic cleanup
-  setupCleanupTask();
-});
+// Setup periodic cleanup on startup
+setupCleanupTask();
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('👋 SIGTERM signal received: closing HTTP server');
-  process.exit(0);
-});
+// Start server (for local development)
+// Vercel will handle this automatically in production
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(serverConfig.port, serverConfig.host, () => {
+    const localIp = getLocalIp();
+    
+    console.log('\n');
+    console.log('╔═══════════════════════════════════════════════════════╗');
+    console.log('║         🚀 FAI-X Deep Link Server Started            ║');
+    console.log('╚═══════════════════════════════════════════════════════╝');
+    console.log('\n');
+    console.log(`🌐 Server:      http://localhost:${serverConfig.port}`);
+    
+    if (localIp) {
+      console.log(`📱 LAN Access:  http://${localIp}:${serverConfig.port}`);
+    }
+    
+    console.log(`🔧 Environment: ${serverConfig.nodeEnv}`);
+    console.log(`📊 Domain:      ${serverConfig.domain}`);
+    console.log('\n');
+    console.log('📍 Available Endpoints:');
+    console.log('   GET  /health                  - Health check');
+    console.log('   GET  /share?productId=...     - Product share link');
+    console.log('   GET  /invite?ref=...          - Invite link');
+    console.log('   GET  /open?clickId=...        - App opening page');
+    console.log('   GET  /product/:id             - Direct product link');
+    console.log('   GET  /referrer/:id            - Get referral data');
+    console.log('   POST /api/product/generate-share-link');
+    console.log('   GET  /api/product/stats/:id');
+    console.log('   GET  /debug/referrals         - View all referrals');
+    console.log('   GET  /debug/stats             - View statistics');
+    console.log('\n');
+    console.log('💡 Example Usage:');
+    console.log(`   Share a product: http://localhost:${serverConfig.port}/share?productId=PROD123`);
+    console.log(`   Invite link:     http://localhost:${serverConfig.port}/invite?ref=USER456`);
+    console.log('\n');
+    console.log('✨ Ready to handle deep links!\n');
+  });
 
-process.on('SIGINT', () => {
-  console.log('👋 SIGINT signal received: closing HTTP server');
-  process.exit(0);
-});
+  // Graceful shutdown
+  process.on('SIGTERM', () => {
+    console.log('👋 SIGTERM signal received: closing HTTP server');
+    process.exit(0);
+  });
+
+  process.on('SIGINT', () => {
+    console.log('👋 SIGINT signal received: closing HTTP server');
+    process.exit(0);
+  });
+}
+
+// Export the Express app for Vercel
+export default app;
 
