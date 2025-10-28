@@ -5,13 +5,11 @@
       {
         "appID": "EAYXYBF4LF.com.82fai.faix",
         "paths": [
-          "/share",
           "/share/*",
           "/product/*",
-          "/invite",
           "/invite/*",
-          "/open",
-          "/open/*"
+          "/open/*",
+          "NOT /_/*"
         ]
       }
     ]
