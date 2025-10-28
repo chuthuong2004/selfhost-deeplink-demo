@@ -3,13 +3,13 @@
     "apps": [],
     "details": [
       {
-        "appID": "EAYXYBF4LF.com.82faix.nfc",
+        "appID": "EAYXYBF4LF.com.82fai.faix",
         "paths": [
-          "/invite",
-          "/invite/*",
           "/share",
           "/share/*",
           "/product/*",
+          "/invite",
+          "/invite/*",
           "/open",
           "/open/*"
         ]
