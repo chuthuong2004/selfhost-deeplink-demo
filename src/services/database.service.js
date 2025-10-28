@@ -16,11 +16,17 @@ class DatabaseService {
   constructor() {
     this.dbPath = path.resolve(dbConfig.path);
     this.dbDir = path.dirname(this.dbPath);
-    this.ensureDbExists();
+    this.isServerless = !!process.env.VERCEL;
+    
+    // Only try to create database files in non-serverless environments
+    if (!this.isServerless) {
+      this.ensureDbExists();
+    }
   }
 
   /**
    * Ensures database directory and file exist
+   * Only works in non-serverless environments (not on Vercel)
    * @private
    */
   ensureDbExists() {
@@ -43,6 +49,15 @@ class DatabaseService {
    */
   readReferrals() {
     try {
+      // On serverless (Vercel), database file might not exist
+      // Return empty array as default
+      if (!fs.existsSync(this.dbPath)) {
+        if (this.isServerless) {
+          console.warn('⚠️ Database file not found in serverless environment. Returning empty array.');
+        }
+        return [];
+      }
+      
       const data = fs.readFileSync(this.dbPath, 'utf8');
       return JSON.parse(data || '[]');
     } catch (error) {
@@ -53,9 +68,17 @@ class DatabaseService {
 
   /**
    * Writes referrals to database
+   * On Vercel (serverless), this will fail due to read-only filesystem
    * @param {Array<Object>} data - Array of referral objects
    */
   writeReferrals(data) {
+    // Serverless environments have read-only filesystem
+    if (this.isServerless) {
+      console.warn('⚠️ Cannot write to database in serverless environment (read-only filesystem)');
+      console.warn('💡 Consider using external database like MongoDB, PostgreSQL, or Redis for persistence');
+      return;
+    }
+    
     try {
       fs.writeFileSync(this.dbPath, JSON.stringify(data, null, 2));
     } catch (error) {

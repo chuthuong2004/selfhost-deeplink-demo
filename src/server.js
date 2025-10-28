@@ -142,9 +142,18 @@ const getLocalIp = () => {
 
 /**
  * Cleanup task - runs periodically
+ * Note: setInterval doesn't work in serverless environments (Vercel)
+ * Only runs in local/non-serverless environments
  */
 const setupCleanupTask = () => {
-  // Run cleanup every 24 hours
+  // Skip cleanup task in serverless environments
+  if (process.env.VERCEL) {
+    console.log('⚠️ Skipping cleanup task (serverless environment)');
+    console.log('💡 For serverless: Use Vercel Cron Jobs or external scheduler');
+    return;
+  }
+  
+  // Run cleanup every 24 hours (local environment only)
   const cleanupInterval = 24 * 60 * 60 * 1000;
   
   setInterval(() => {
@@ -155,7 +164,7 @@ const setupCleanupTask = () => {
   console.log('✅ Cleanup task scheduled (every 24 hours)');
 };
 
-// Setup periodic cleanup on startup
+// Setup periodic cleanup on startup (local only)
 setupCleanupTask();
 
 // Start server (for local development)
