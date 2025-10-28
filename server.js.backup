@@ -1,0 +1,256 @@
+import express from "express";
+import fs from "fs";
+import path from "path";
+import dotenv from "dotenv";
+import cors from "cors";
+import { v4 as uuidv4 } from "uuid";
+import os from "node:os";
+
+dotenv.config();
+
+const app = express();
+const __dirname = path.resolve();
+const DB_DIR = path.join(__dirname, "data");
+const DB_PATH = path.join(DB_DIR, "referrals.json");
+
+app.use(cors());
+app.use(express.json());
+
+function ensureDbDir() {
+  if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
+  if (!fs.existsSync(DB_PATH)) fs.writeFileSync(DB_PATH, "[]");
+}
+
+function readReferrals() {
+  ensureDbDir();
+  try {
+    return JSON.parse(fs.readFileSync(DB_PATH, "utf8") || "[]");
+  } catch (err) {
+    console.error("Error reading DB:", err);
+    return [];
+  }
+}
+
+function writeReferrals(data) {
+  ensureDbDir();
+  fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
+}
+
+// Default fallback store links (can be overridden by .env)
+const ANDROID_STORE =
+  process.env.ANDROID_STORE ||
+  "https://play.google.com/store/apps/details?id=com.nfc.faix";
+const IOS_STORE =
+  process.env.IOS_STORE || "https://apps.apple.com/us/app/fai-x/id6737755560";
+const LANDING_PAGE = process.env.LANDING_PAGE || "https://fai-x.com/";
+
+// Route: /invite?ref=ABC123
+// Save a referral click and redirect user to the appropriate store.
+app.get("/invite", (req, res) => {
+  const { ref, utm_source, utm_medium } = req.query;
+  const ua = req.headers["user-agent"] || "";
+  const ip = req.ip || req.socket.remoteAddress || "";
+  const isAndroid = /Android/i.test(ua);
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+
+  const clickId = uuidv4();
+  const newReferral = {
+    id: clickId,
+    ref: ref || null,
+    utm_source: utm_source || null,
+    utm_medium: utm_medium || null,
+    userAgent: ua,
+    ip,
+    timestamp: new Date().toISOString(),
+  };
+
+  const all = readReferrals();
+  all.push(newReferral);
+  writeReferrals(all);
+
+  console.log("🔗 New referral:", newReferral);
+
+  // For Android we include the clickId as the play store referrer param
+  if (isAndroid) {
+    const url = new URL(ANDROID_STORE);
+    // add referrer param used by Install Referrer API
+    url.searchParams.set("referrer", `click_id%3D${clickId}`); // encoded "click_id=<id>"
+    return res.redirect(url.toString());
+  }
+
+  // For iOS, there's no canonical referrer param for App Store. Redirect to landing or iOS store.
+  if (isIOS) {
+    // Redirect to a landing page that will try to open the app (or use Universal Link)
+    // If app is installed, the landing page script will open it; otherwise it will redirect to the App Store.
+    return res.redirect(`/open?clickId=${clickId}${ref?('&ref='+encodeURIComponent(ref)):''}`);
+  }
+
+  // Default fallback
+  return res.redirect(LANDING_PAGE);
+});
+
+// Route: GET /referrer/:clickId
+// App calls this (after install/open) to retrieve metadata for the clickId
+app.get("/referrer/:id", (req, res) => {
+  const { id } = req.params;
+  const all = readReferrals();
+  const referral = all.find((r) => r.id === id);
+  if (!referral)
+    return res.status(404).json({ message: "Not found or expired" });
+  // Optional: delete after read to emulate one-time consumable link
+  // writeReferrals(all.filter(r => r.id !== id));
+  res.json(referral);
+});
+
+// Route: /share?productId=123&ref=optionalRef
+// Convenience endpoint so you can create product share links like
+// https://dl.yourdomain.com/share?productId=123
+app.get('/share', (req, res) => {
+  const { productId, ref, utm_source, utm_medium } = req.query;
+  // reuse invite logic by creating a clickId and redirecting to /invite
+  const params = new URLSearchParams();
+  if (ref) params.set('ref', String(ref));
+  if (utm_source) params.set('utm_source', String(utm_source));
+  if (utm_medium) params.set('utm_medium', String(utm_medium));
+  // attach productId as ref if not provided
+  if (productId && !ref) params.set('ref', `product:${String(productId)}`);
+
+  return res.redirect(`/invite?${params.toString()}`);
+});
+
+// Landing page to attempt to open the native app, otherwise fallback to store.
+// Usage: /open?clickId=<id>&ref=<ref>
+app.get("/open", (req, res) => {
+  const { clickId, ref } = req.query;
+  const safeClick = String(clickId || "");
+  const safeRef = String(ref || "");
+
+  // Config from env (optional)
+  const storeAndroid = ANDROID_STORE;
+  const storeIOS = IOS_STORE;
+
+  // A simple landing page that attempts to open the app using multiple strategies
+  const html = `<!doctype html>
+  <html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Open App</title>
+    <style>body{font-family:system-ui,Arial,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0} .box{max-width:420px;padding:24px;text-align:center}</style>
+  </head>
+  <body>
+    <div class="box">
+      <h3>Opening app…</h3>
+      <p>If nothing happens, you'll be redirected to install the app.</p>
+      <p><button id="openBtn">Open app</button></p>
+    </div>
+    <script>
+      (function(){
+        const clickId = ${JSON.stringify(safeClick)};
+        const ref = ${JSON.stringify(safeRef)};
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        const appScheme = ${JSON.stringify(
+          process.env.APP_SCHEME || "fai-x"
+        )};
+        const appPackage = ${JSON.stringify(process.env.APP_PACKAGE || "com.82faix.nfc")};
+        const storeAndroid = ${JSON.stringify(storeAndroid)};
+        const storeIOS = ${JSON.stringify(storeIOS)};
+
+        function fallbackToStore(){
+          if (isAndroid) window.location = storeAndroid;
+          else if (isIOS) window.location = storeIOS;
+          else window.location = '/';
+        }
+
+        function openWithScheme(){
+          // try custom scheme first
+          const schemeUrl = appScheme + '://invite?clickId=' + encodeURIComponent(clickId) + (ref?('&ref='+encodeURIComponent(ref)):'');
+          window.location = schemeUrl;
+        }
+
+        function openIntent(){
+          // Android intent URI as a fallback (opens app if installed, or Play Store)
+          const intentUrl = 'intent://invite?clickId=' + encodeURIComponent(clickId) + '#Intent;scheme=' + appScheme + (appPackage?(';package=' + appPackage):'') + ';end';
+          window.location = intentUrl;
+        }
+
+        function openUniversal(){
+          // a universal https link that your app may handle (if configured)
+          const universal = location.origin + '/invite?ref=' + encodeURIComponent(ref || '') + (clickId ? ('&clickId=' + encodeURIComponent(clickId)) : '');
+          window.location = universal;
+        }
+
+        function tryOpen(){
+          const start = Date.now();
+          // If page becomes hidden, assume app opened
+          let hidden = false;
+          document.addEventListener('visibilitychange', function(){ hidden = document.hidden; });
+
+          if (isAndroid) {
+            // Try intent first (most reliable), then custom scheme fallback
+            openIntent();
+          } else {
+            // iOS: try universal link (https) which will open app if installed; also try custom scheme
+            openUniversal();
+            // also attempt custom scheme after short delay
+            setTimeout(openWithScheme, 500);
+          }
+
+          // fallback to store if app didn't open within 1.5s
+          setTimeout(function(){
+            if (!hidden && (Date.now() - start) < 2000) {
+              fallbackToStore();
+            }
+          }, 1500);
+        }
+
+        document.getElementById('openBtn').addEventListener('click', tryOpen);
+
+        // auto-try on load
+        setTimeout(tryOpen, 350);
+      })();
+    </script>
+  </body>
+  </html>`;
+
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.send(html);
+});
+
+// Debug route
+app.get("/debug/referrals", (req, res) => {
+  res.json(readReferrals());
+});
+
+// Simple health
+app.get("/health", (req, res) => res.send({ status: "ok" }));
+
+const port = process.env.PORT || 8080;
+
+// Helper: try to detect local LAN IP to show a usable URL when developing
+function getLocalIp() {
+  const ifaces = os.networkInterfaces();
+  for (const name of Object.keys(ifaces)) {
+    for (const iface of ifaces[name]) {
+      // skip over internal (i.e. 127.0.0.1) and non-ipv4
+      if (iface.family === "IPv4" && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return null;
+}
+
+// Listen on all interfaces so other devices on the LAN can reach it
+const HOST = "0.0.0.0";
+app.listen(port, HOST, () => {
+  const localIp = getLocalIp();
+  console.log(`🚀 Server running on http://localhost:${port}`);
+  if (localIp)
+    console.log(`📱 Accessible on your LAN at http://${localIp}:${port}`);
+  else
+    console.log(
+      "📱 Could not detect LAN IP automatically — use ifconfig/ipconfig to find it"
+    );
+});

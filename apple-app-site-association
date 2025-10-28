@@ -1,0 +1,19 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "EAYXYBF4LF.com.82faix.nfc",
+        "paths": [
+          "/invite",
+          "/invite/*",
+          "/share",
+          "/share/*",
+          "/product/*",
+          "/open",
+          "/open/*"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.82faix.nfc",
+      "sha256_cert_fingerprints": [
+        "BF:10:0A:D4:1C:DA:A0:2B:7C:85:B9:32:E1:91:79:99:A6:21:70:27:D7:8B:62:01:09:72:29:83:78:82:23:E3"
+      ]
+    }
+  }
+]
+
