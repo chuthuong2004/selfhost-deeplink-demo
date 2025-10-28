@@ -36,8 +36,6 @@ import databaseService from './services/database.service.js';
 // Initialize Express app
 const app = express();
 
-// Disable x-powered-by header globally
-app.disable('x-powered-by');
 
 // Trust proxy (important for getting real IP behind reverse proxy)
 app.set('trust proxy', true);
