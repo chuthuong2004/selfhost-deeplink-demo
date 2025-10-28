@@ -44,6 +44,26 @@ class ProductShareService {
     
     const shareLink = `https://${baseUrl}/share?${params.toString()}`;
     
+    // Create share metadata record in database
+    // This allows short links to work by looking up the shareId
+    const shareData = {
+      id: shareId, // Use shareId as the record ID
+      type: 'share_link_generated',
+      shareId,
+      productId,
+      ref: ref || null,
+      userId: userId || null,
+      metadata,
+      timestamp: new Date().toISOString(),
+      shortLink: `https://${baseUrl}/s/${shareId}`,
+      fullLink: shareLink,
+    };
+    
+    // Save share metadata to database
+    databaseService.createReferral(shareData);
+    
+    console.log('🔗 Generated share link:', { shareId, productId, shortLink: shareData.shortLink });
+    
     return {
       shareId,
       shareLink,

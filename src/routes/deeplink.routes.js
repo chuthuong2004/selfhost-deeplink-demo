@@ -12,6 +12,47 @@ import databaseService from '../services/database.service.js';
 const router = express.Router();
 
 /**
+ * GET /s/:shareId
+ * Short link redirect - redirects to full share URL
+ * Params: shareId
+ */
+router.get('/s/:shareId', (req, res) => {
+  try {
+    const { shareId } = req.params;
+    
+    // Find the original share data by shareId (stored as id)
+    const shareData = databaseService.findReferralById(shareId);
+    
+    if (!shareData?.productId) {
+      // If not found or invalid, return error
+      return res.status(404).json({
+        success: false,
+        error: 'Short link not found or expired',
+        shareId,
+      });
+    }
+    
+    // Build full share URL with all original parameters
+    const params = new URLSearchParams();
+    params.set('productId', shareData.productId);
+    params.set('shareId', shareId);
+    if (shareData.ref) params.set('ref', shareData.ref);
+    if (shareData.userId) params.set('userId', shareData.userId);
+    
+    // Redirect to full share URL
+    const fullUrl = `/share?${params.toString()}`;
+    console.log(`🔗 Short link redirect: /s/${shareId} → ${fullUrl}`);
+    res.redirect(fullUrl);
+  } catch (error) {
+    console.error('❌ Error handling short link:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error processing short link',
+    });
+  }
+});
+
+/**
  * GET /share
  * Main product share endpoint - handles clicks on share links
  * Query params: productId, shareId, ref, userId, utm_*
