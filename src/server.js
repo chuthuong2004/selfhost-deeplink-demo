@@ -12,6 +12,12 @@
 import express from 'express';
 import cors from 'cors';
 import os from 'node:os';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// ES modules fix: Get __dirname equivalent
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Import configurations
 import { serverConfig } from './config/app.config.js';
@@ -46,6 +52,23 @@ app.use((req, res, next) => {
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] ${req.method} ${req.path}`);
   next();
+});
+
+// Serve apple-app-site-association for iOS Universal Links
+app.get('/.well-known/apple-app-site-association', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.sendFile(path.join(__dirname, '../apple-app-site-association'));
+});
+
+app.get('/apple-app-site-association', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.sendFile(path.join(__dirname, '../apple-app-site-association'));
+});
+
+// Serve assetlinks.json for Android App Links
+app.get('/.well-known/assetlinks.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.sendFile(path.join(__dirname, '../.well-known/assetlinks.json'));
 });
 
 // Health check endpoint
