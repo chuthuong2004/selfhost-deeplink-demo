@@ -57,6 +57,14 @@ app.use((req, res, next) => {
   next();
 });
 
+// ============================================
+// Serve static files from public directory
+// This will automatically serve:
+// - /.well-known/assetlinks.json (Android App Links)
+// - Any other files in public/
+// ============================================
+app.use(express.static(path.join(__dirname, '../public')));
+
 // Serve apple-app-site-association for iOS Universal Links
 app.get('/.well-known/apple-app-site-association', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
@@ -68,14 +76,6 @@ app.get('/apple-app-site-association', (req, res) => {
   res.sendFile(path.join(__dirname, '../apple-app-site-association'));
 });
 
-// Serve assetlinks.json for Android App Links
-// Remove x-powered-by header to comply with Android requirements
-app.get('/.well-known/assetlinks.json', (req, res) => {
-  res.removeHeader('X-Powered-By');
-  res.setHeader('Content-Type', 'application/json');
-  res.setHeader('Cache-Control', 'public, max-age=3600');
-  res.sendFile(path.join(__dirname, '../public/.well-known/assetlinks.json'));
-});
 
 // Health check endpoint
 app.get('/health', (req, res) => {
