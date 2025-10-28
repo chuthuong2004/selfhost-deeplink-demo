@@ -5,20 +5,6 @@
       "namespace": "android_app",
       "package_name": "com.nfc.faix",
       "sha256_cert_fingerprints": [
-        "D9:F5:C5:EA:D9:D3:C0:DD:C1:4D:D2:0F:34:0A:07:53:7A:45:4C:62:04:48:91:1F:6D:08:3D:9A:0E:3F:60:02",
-        "BF:10:0A:D4:1C:DA:A0:2B:7C:85:B9:32:E1:91:79:99:A6:21:70:27:D7:8B:62:01:09:72:29:83:78:82:23:E3",
-        "D9:F5:C5:EA:D9:D3:C0:DD:C1:4D:D2:0F:34:0A:07:53:7A:45:4C:62:04:48:91:1F:6D:08:3D:9A:0E:3F:60:02"
-      ]
-    }
-  },
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "com.nfc.faix.dev",
-      "sha256_cert_fingerprints": [
-        "D9:F5:C5:EA:D9:D3:C0:DD:C1:4D:D2:0F:34:0A:07:53:7A:45:4C:62:04:48:91:1F:6D:08:3D:9A:0E:3F:60:02",
-        "4D:BE:0B:F5:7A:34:5A:A2:13:7D:75:6F:CC:6D:A2:F9:26:F2:D5:42:A1:D5:4B:CC:1C:52:7F:6C:B1:FE:45:48",
         "BF:10:0A:D4:1C:DA:A0:2B:7C:85:B9:32:E1:91:79:99:A6:21:70:27:D7:8B:62:01:09:72:29:83:78:82:23:E3"
       ]
     }
