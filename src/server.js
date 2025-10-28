@@ -65,11 +65,9 @@ app.get('/apple-app-site-association', (req, res) => {
   res.sendFile(path.join(__dirname, '../apple-app-site-association'));
 });
 
-// Serve assetlinks.json for Android App Links
-app.get('/.well-known/assetlinks.json', (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.sendFile(path.join(__dirname, '../.well-known/assetlinks.json'));
-});
+// Android App Links: assetlinks.json
+// Served statically via Vercel config (public/.well-known/assetlinks.json)
+// DO NOT add Express route here - must be served as static file without x-powered-by header
 
 // Health check endpoint
 app.get('/health', (req, res) => {
