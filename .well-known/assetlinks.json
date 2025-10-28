@@ -5,8 +5,7 @@
       "namespace": "android_app",
       "package_name": "com.nfc.faix",
       "sha256_cert_fingerprints": [
-        "D9:F5:C5:EA:D9:D3:C0:DD:C1:4D:D2:0F:34:0A:07:53:7A:45:4C:62:04:48:91:1F:6D:08:3D:9A:0E:3F:60:02",
-        "BF:10:0A:D4:1C:DA:A0:2B:7C:85:B9:32:E1:91:79:99:A6:21:70:27:D7:8B:62:01:09:72:29:83:78:82:23:E3"
+        "D9:F5:C5:EA:D9:D3:C0:DD:C1:4D:D2:0F:34:0A:07:53:7A:45:4C:62:04:48:91:1F:6D:08:3D:9A:0E:3F:60:02"
       ]
     }
   }
