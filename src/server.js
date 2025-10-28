@@ -36,6 +36,9 @@ import databaseService from './services/database.service.js';
 // Initialize Express app
 const app = express();
 
+// Disable x-powered-by header globally
+app.disable('x-powered-by');
+
 // Trust proxy (important for getting real IP behind reverse proxy)
 app.set('trust proxy', true);
 
@@ -65,9 +68,14 @@ app.get('/apple-app-site-association', (req, res) => {
   res.sendFile(path.join(__dirname, '../apple-app-site-association'));
 });
 
-// Android App Links: assetlinks.json
-// Served statically via Vercel config (public/.well-known/assetlinks.json)
-// DO NOT add Express route here - must be served as static file without x-powered-by header
+// Serve assetlinks.json for Android App Links
+// Remove x-powered-by header to comply with Android requirements
+app.get('/.well-known/assetlinks.json', (req, res) => {
+  res.removeHeader('X-Powered-By');
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.sendFile(path.join(__dirname, '../public/.well-known/assetlinks.json'));
+});
 
 // Health check endpoint
 app.get('/health', (req, res) => {
