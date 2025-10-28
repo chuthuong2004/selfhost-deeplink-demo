@@ -36,6 +36,8 @@ import databaseService from './services/database.service.js';
 // Initialize Express app
 const app = express();
 
+// Disable x-powered-by header globally (Android App Links requirement)
+app.disable('x-powered-by');
 
 // Trust proxy (important for getting real IP behind reverse proxy)
 app.set('trust proxy', true);
@@ -61,7 +63,15 @@ app.use((req, res, next) => {
 // - /.well-known/assetlinks.json (Android App Links)
 // - Any other files in public/
 // ============================================
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, '../public'), {
+  setHeaders: (res, filepath) => {
+    // Set proper cache control for well-known files
+    if (filepath.includes('/.well-known/')) {
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.setHeader('Content-Type', 'application/json');
+    }
+  }
+}));
 
 // Serve apple-app-site-association for iOS Universal Links
 app.get('/.well-known/apple-app-site-association', (req, res) => {
