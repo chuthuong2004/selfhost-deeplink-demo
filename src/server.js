@@ -64,6 +64,9 @@ app.use((req, res, next) => {
 // - Any other files in public/
 // ============================================
 app.use(express.static(path.join(__dirname, '../public'), {
+  etag: true,
+  lastModified: true,
+  maxAge: 0, // Disable caching in development to avoid stale files
   setHeaders: (res, filepath) => {
     // Set proper cache control for well-known files
     if (filepath.includes('/.well-known/')) {
