@@ -505,7 +505,7 @@ class DeepLinkService {
 </head>
 <body>
   <div class="container">
-    <img src="https://app-faix.vercel.app/images/logo.png" alt="FAI-X Logo" class="logo">
+    <img src="/images/logo.png" alt="FAI-X Logo" class="logo">
     <h1>${this._escapeHtml(title)}</h1>
     <p>${this._escapeHtml(description)}</p>
     
