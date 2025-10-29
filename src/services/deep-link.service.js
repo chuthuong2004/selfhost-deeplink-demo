@@ -238,6 +238,9 @@ class DeepLinkService {
       display: block;
       object-fit: contain;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      background: white;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
     }
     
     h1 {
@@ -308,7 +311,7 @@ class DeepLinkService {
 </head>
 <body>
   <div class="container">
-    <img src="https://app-faix.vercel.app/images/logo.png" alt="FAI-X Logo" class="logo">
+    <img src="/images/logo.png" alt="FAI-X Logo" class="logo" onerror="this.style.display='none'">
     <h1>Opening FAI-X App...</h1>
     <p>
       If the app doesn't open automatically, you'll be redirected to the store to install it.
@@ -449,6 +452,9 @@ class DeepLinkService {
       display: block;
       object-fit: contain;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      background: white;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
     }
     
     h1 {
@@ -505,7 +511,7 @@ class DeepLinkService {
 </head>
 <body>
   <div class="container">
-    <img src="/images/logo.png" alt="FAI-X Logo" class="logo">
+    <img src="/images/logo.png" alt="FAI-X Logo" class="logo" onerror="this.style.display='none'">
     <h1>${this._escapeHtml(title)}</h1>
     <p>${this._escapeHtml(description)}</p>
     
