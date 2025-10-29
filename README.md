@@ -48,6 +48,7 @@ FAI-X Deep Link Server là một hệ thống self-hosted cho phép bạn:
 - ⚡ **Fast & Lightweight** - Node.js + Express
 - 🔒 **Rate Limiting** - Bảo vệ API khỏi abuse
 - 🌐 **Universal/App Links** - Native deep linking
+- ✨ **SEO & Social Sharing** - Đầy đủ meta tags cho Facebook, Telegram, Zalo, Twitter
 
 ### Technical Features
 
@@ -120,22 +121,29 @@ Server sẽ chạy tại `http://localhost:8080`
 
 ### 🌐 Public Endpoints (Deep Links)
 
-#### **GET /share**
-Share sản phẩm - endpoint chính
+#### **GET /share** ✨ NEW: With SEO Meta Tags
+Share sản phẩm - endpoint chính với đầy đủ meta tags SEO
 
 ```bash
 # Example
-https://dl.fai-x.com/share?productId=PROD123&ref=USER456
+https://app-faix.vercel.app/share?id=99:33:E2:00:00:00:02&ref=USER456
 ```
 
 **Query Parameters:**
-- `productId` (required) - ID sản phẩm
+- `id` (required) - ID sản phẩm/resource
 - `shareId` (optional) - ID của share link
 - `ref` (optional) - Referral code
 - `userId` (optional) - User ID người share
 - `utm_*` (optional) - UTM parameters
 
-**Response:** Redirect đến store hoặc landing page
+**Response:** HTML page với đầy đủ meta tags (Open Graph, Twitter Card) và auto-redirect
+
+**SEO Features:**
+- ✅ Open Graph tags (Facebook, Telegram, Zalo)
+- ✅ Twitter Card tags
+- ✅ Beautiful preview khi share trên mạng xã hội
+- ✅ Auto-redirect cho người dùng thật (100ms)
+- ✅ Bot crawler đọc được meta tags đầy đủ
 
 ---
 
@@ -196,10 +204,10 @@ curl https://dl.fai-x.com/referrer/CLICK_ID
 Tạo share link cho sản phẩm
 
 ```bash
-curl -X POST http://localhost:8080/api/product/generate-share-link \
+curl -X POST https://app-faix.vercel.app/api/product/generate-share-link \
   -H "Content-Type: application/json" \
   -d '{
-    "productId": "PROD123",
+    "productId": "99:33:E2:00:00:00:02",
     "userId": "USER456",
     "ref": "campaign2024",
     "metadata": {
@@ -215,11 +223,42 @@ curl -X POST http://localhost:8080/api/product/generate-share-link \
   "success": true,
   "data": {
     "shareId": "uuid-here",
-    "shareLink": "https://dl.fai-x.com/share?productId=PROD123&shareId=uuid-here&userId=USER456&ref=campaign2024",
-    "shortLink": "https://dl.fai-x.com/s/xyz123",
-    "productId": "PROD123",
+    "shareLink": "https://app-faix.vercel.app/share?id=99:33:E2:00:00:00:02&shareId=uuid-here&userId=USER456&ref=campaign2024",
+    "shortLink": "https://app-faix.vercel.app/s/xyz123",
+    "productId": "99:33:E2:00:00:00:02",
     "createdAt": "2024-01-01T00:00:00.000Z"
   }
+}
+```
+
+---
+
+#### **POST /api/product/update-metadata** ✨ NEW
+Cập nhật metadata cho sản phẩm (cho SEO và social sharing)
+
+```bash
+curl -X POST https://app-faix.vercel.app/api/product/update-metadata \
+  -H "Content-Type: application/json" \
+  -d '{
+    "productId": "99:33:E2:00:00:00:02",
+    "title": "iPhone 15 Pro Max - Chính Hãng VN/A | FAI-X",
+    "description": "iPhone 15 Pro Max mới 100%, giá tốt nhất thị trường. Bảo hành 12 tháng chính hãng Apple.",
+    "image": "https://cdn.example.com/iphone-15-pro-max.jpg"
+  }'
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "productId": "99:33:E2:00:00:00:02",
+    "title": "iPhone 15 Pro Max - Chính Hãng VN/A | FAI-X",
+    "description": "iPhone 15 Pro Max mới 100%...",
+    "image": "https://cdn.example.com/iphone-15-pro-max.jpg",
+    "updatedAt": "2025-10-29T10:30:00.000Z"
+  },
+  "message": "Metadata updated successfully"
 }
 ```
 
@@ -357,6 +396,80 @@ const handleDeepLink = async (url: string | null) => {
 ```
 
 📚 **Chi tiết hơn**: Xem [Integration Guide](./docs/INTEGRATION_GUIDE.md)
+
+---
+
+## ✨ SEO & Social Sharing (NEW)
+
+### Tổng Quan
+
+Khi share link trên Facebook, Telegram, Zalo, Twitter... link sẽ hiển thị preview đẹp với ảnh, tiêu đề và mô tả. Hệ thống tự động:
+- ✅ Bot crawler đọc được meta tags đầy đủ
+- ✅ Người dùng thật được redirect ngay lập tức
+- ✅ Hỗ trợ Open Graph và Twitter Card
+
+### Quick Start
+
+#### 1. Share Link Cơ Bản
+
+```
+https://app-faix.vercel.app/share?id=99:33:E2:00:00:00:02
+```
+
+Link này sẽ:
+- Hiển thị preview đẹp trên social media
+- Tự động redirect người dùng đến app/store
+- Track clicks và analytics
+
+#### 2. Update Metadata cho Sản Phẩm
+
+```bash
+curl -X POST https://app-faix.vercel.app/api/product/update-metadata \
+  -H "Content-Type: application/json" \
+  -d '{
+    "productId": "99:33:E2:00:00:00:02",
+    "title": "iPhone 15 Pro Max | FAI-X",
+    "description": "iPhone 15 Pro Max chính hãng, giá tốt nhất",
+    "image": "https://cdn.example.com/iphone15.jpg"
+  }'
+```
+
+#### 3. Test Preview
+
+- **Facebook**: https://developers.facebook.com/tools/debug/
+- **Twitter**: https://cards-dev.twitter.com/validator
+- Paste link và check preview
+
+### Meta Tags Hỗ Trợ
+
+- ✅ Open Graph (Facebook, Telegram, Zalo)
+  - `og:title`, `og:description`, `og:image`, `og:url`
+- ✅ Twitter Card
+  - `twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`
+- ✅ Primary meta tags
+  - `<title>`, `<meta name="description">`
+
+### Best Practices
+
+**Hình Ảnh:**
+- Kích thước: 1200 x 630px (tỷ lệ 1.91:1)
+- Format: JPG, PNG, WebP
+- Dung lượng: < 5MB
+- **Phải dùng HTTPS**
+
+**Tiêu Đề:**
+- Độ dài: 60-90 ký tự
+- Format: `Tên Sản Phẩm - USP | Brand`
+
+**Mô Tả:**
+- Độ dài: 150-200 ký tự
+- Có call-to-action (CTA)
+
+### Documentation
+
+📚 **Hướng dẫn chi tiết**: [SEO Sharing Guide](./docs/SEO_SHARING_GUIDE.md)  
+💻 **Code examples**: [examples/seo-metadata-example.js](./examples/seo-metadata-example.js)  
+📝 **Feature summary**: [SEO_FEATURE_SUMMARY.md](./SEO_FEATURE_SUMMARY.md)
 
 ---
 
