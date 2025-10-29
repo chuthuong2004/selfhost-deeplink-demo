@@ -171,17 +171,16 @@ router.get('/invite', (req, res) => {
 /**
  * GET /open
  * Landing page that attempts to open the app
- * Query params: clickId, ref, id
+ * Query params: ref, id
  */
 router.get('/open', (req, res) => {
   try {
-    const { clickId, ref, id } = req.query;
+    const { ref, id } = req.query;
     const userAgent = req.headers['user-agent'] || '';
     const platform = deepLinkService.detectPlatform(userAgent);
     
     // Generate and send landing page HTML
     const html = deepLinkService.generateLandingPageHTML({
-      clickId,
       ref,
       id,
       platform,
@@ -236,26 +235,23 @@ router.get('/referrer/:id', (req, res) => {
 router.get('/product/:productId', (req, res) => {
   try {
     const { productId } = req.params;
-    const { clickId, ref } = req.query;
+    const { ref } = req.query;
     
     const userAgent = req.headers['user-agent'] || '';
+    const ip = req.ip || req.socket.remoteAddress || '';
     
-    // If no clickId, create one
-    let finalClickId = clickId;
-    if (!finalClickId) {
-      const ip = req.ip || req.socket.remoteAddress || '';
-      const clickData = productShareService.processShareClick({
-        productId,
-        ref,
-        userAgent,
-        ip,
-        utmParams: {},
-      });
-      finalClickId = clickData.id;
-    }
+    // Track the click
+    productShareService.processShareClick({
+      productId,
+      ref,
+      userAgent,
+      ip,
+      utmParams: {},
+    });
     
     // Redirect to landing page that will try to open app
-    res.redirect(`/open?clickId=${finalClickId}&productId=${productId}${ref ? '&ref=' + encodeURIComponent(ref) : ''}`);
+    const redirectUrl = `/open?id=${productId}${ref ? '&ref=' + encodeURIComponent(ref) : ''}`;
+    res.redirect(redirectUrl);
   } catch (error) {
     console.error('❌ Error handling product link:', error);
     res.status(500).send('Error processing product link');

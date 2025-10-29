@@ -66,13 +66,13 @@ class DeepLinkService {
   /**
    * Generates iOS redirect URL (to landing page with app opening logic)
    * @private
-   * @param {string} clickId - Click ID
+   * @param {string} clickId - Click ID (not used, kept for compatibility)
    * @param {string} [ref] - Reference code
    * @param {string} [id] - Resource ID
    * @returns {string} Landing page URL
    */
   _generateIOSRedirect(clickId, ref, id) {
-    const params = new URLSearchParams({ clickId });
+    const params = new URLSearchParams();
     if (ref) params.set('ref', ref);
     if (id) params.set('id', id);
     
@@ -85,11 +85,10 @@ class DeepLinkService {
    * @returns {string} JavaScript code
    */
   generateAppOpeningScript(params) {
-    const { clickId, ref, id, platform } = params;
+    const { ref, id, platform } = params;
     
     return `
       (function() {
-        const clickId = ${JSON.stringify(clickId || '')};
         const ref = ${JSON.stringify(ref || '')};
         const id = ${JSON.stringify(id || '')};
         const platform = ${JSON.stringify(platform)};
@@ -106,7 +105,6 @@ class DeepLinkService {
         
         // Build query parameters
         const queryParams = new URLSearchParams();
-        if (clickId) queryParams.set('clickId', clickId);
         if (ref) queryParams.set('ref', ref);
         
         const queryString = queryParams.toString();
@@ -114,7 +112,7 @@ class DeepLinkService {
         // Generate different link formats
         const links = {
           customScheme: appScheme + '://' + deepLinkPath + (queryString ? '?' + queryString : ''),
-          androidIntent: 'intent://' + deepLinkPath + '?' + queryString + '#Intent;scheme=' + appScheme + ';package=' + appPackage + ';end',
+          androidIntent: 'intent://' + deepLinkPath + (queryString ? '?' + queryString : '') + '#Intent;scheme=' + appScheme + ';package=' + appPackage + ';end',
           universalLink: window.location.origin + '/' + deepLinkPath + (queryString ? '?' + queryString : ''),
         };
         
