@@ -182,15 +182,15 @@ class DeepLinkService {
    * @returns {string} HTML content
    */
   generateLandingPageHTML(params) {
-    const { clickId, ref, id, platform } = params;
+    const { id } = params;
     const script = this.generateAppOpeningScript(params);
     
     return `<!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mở ứng dụng FAI-X</title>
+  <title>Open FAI-X App</title>
   <style>
     * {
       margin: 0;
@@ -313,21 +313,21 @@ class DeepLinkService {
 <body>
   <div class="container">
     <div class="logo">FX</div>
-    <h1>🚀 Đang mở ứng dụng FAI-X...</h1>
+    <h1>🚀 Opening FAI-X App...</h1>
     <p>
-      Nếu ứng dụng không tự động mở, bạn sẽ được chuyển đến cửa hàng để cài đặt.
+      If the app doesn't open automatically, you'll be redirected to the store to install it.
     </p>
     
     <div class="spinner"></div>
     
     <button id="openAppBtn">
-      Mở ứng dụng ngay
+      Open App Now
     </button>
     
     ${id ? `
     <div class="info">
       <div class="info-item">
-        <strong>Sản phẩm:</strong> #${id}
+        <strong>Item Tag:</strong> #${id}
       </div>
     </div>
     ` : ''}
@@ -336,6 +336,228 @@ class DeepLinkService {
   <script>${script}</script>
 </body>
 </html>`;
+  }
+
+  /**
+   * Generates HTML page with SEO meta tags for social sharing
+   * @param {Object} params - Page parameters
+   * @param {Object} params.metadata - Product metadata (title, description, image, etc.)
+   * @param {string} params.redirectUrl - URL to redirect to
+   * @param {string} params.id - Product/Resource ID
+   * @returns {string} HTML content with meta tags
+   */
+  generateSharePageHTML({ metadata, redirectUrl, id }) {
+    const {
+      title = 'My Closet Item | FAI-X',
+      description = 'Check out this item from my closet on FAI-X',
+      image = 'https://app-faix.vercel.app/images/logo.png',
+      url = `https://app-faix.vercel.app/share?id=${id}`,
+      siteName = 'FAI-X - Smart Closet',
+      type = 'product',
+      locale = 'en_US',
+    } = metadata;
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  
+  <!-- Primary Meta Tags -->
+  <title>${this._escapeHtml(title)}</title>
+  <meta name="title" content="${this._escapeHtml(title)}">
+  <meta name="description" content="${this._escapeHtml(description)}">
+  <meta name="keywords" content="closet management, wardrobe organizer, NFC tags, fashion, clothing">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="${type}">
+  <meta property="og:url" content="${url}">
+  <meta property="og:title" content="${this._escapeHtml(title)}">
+  <meta property="og:description" content="${this._escapeHtml(description)}">
+  <meta property="og:image" content="${image}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="${siteName}">
+  <meta property="og:locale" content="${locale}">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="${url}">
+  <meta name="twitter:title" content="${this._escapeHtml(title)}">
+  <meta name="twitter:description" content="${this._escapeHtml(description)}">
+  <meta name="twitter:image" content="${image}">
+  
+  <!-- Telegram -->
+  <meta property="telegram:channel" content="@faix">
+  
+  <!-- Zalo -->
+  <meta property="zalo:image" content="${image}">
+  
+  <!-- Auto-redirect after page loads (for users, not bots) -->
+  <meta http-equiv="refresh" content="0;url=${redirectUrl}">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      animation: slideUp 0.5s ease-out;
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .product-image {
+      width: 100%;
+      max-width: 300px;
+      height: auto;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      object-fit: cover;
+    }
+    
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 24px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      font-weight: bold;
+      color: white;
+    }
+    
+    h1 {
+      font-size: 24px;
+      color: #1a202c;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    
+    p {
+      color: #718096;
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+    
+    .spinner {
+      margin: 24px auto;
+      width: 50px;
+      height: 50px;
+      border: 4px solid #e2e8f0;
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .redirect-info {
+      font-size: 14px;
+      color: #a0aec0;
+      margin-top: 20px;
+    }
+    
+    .manual-link {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .manual-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">FX</div>
+    <h1>${this._escapeHtml(title)}</h1>
+    <p>${this._escapeHtml(description)}</p>
+    
+    <div class="spinner"></div>
+    
+    <p class="redirect-info">Redirecting...</p>
+    
+    <a href="${redirectUrl}" class="manual-link" id="manualLink">
+      Click here if not redirected automatically
+    </a>
+  </div>
+  
+  <script>
+    // Immediate redirect for real users (not bot crawlers)
+    (function() {
+      const isBot = /bot|crawler|spider|crawling/i.test(navigator.userAgent);
+      
+      if (!isBot) {
+        // Redirect immediately for real users
+        setTimeout(function() {
+          window.location.href = ${JSON.stringify(redirectUrl)};
+        }, 100);
+      }
+    })();
+  </script>
+</body>
+</html>`;
+  }
+
+  /**
+   * Escapes HTML special characters
+   * @private
+   * @param {string} text - Text to escape
+   * @returns {string} Escaped text
+   */
+  _escapeHtml(text) {
+    const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return String(text).replaceAll(/[&<>"']/g, (m) => map[m]);
   }
 
   /**

@@ -8,6 +8,7 @@ import express from 'express';
 import productShareService from '../services/product-share.service.js';
 import deepLinkService from '../services/deep-link.service.js';
 import databaseService from '../services/database.service.js';
+import productMetadataService from '../services/product-metadata.service.js';
 
 const router = express.Router();
 
@@ -54,7 +55,7 @@ router.get('/s/:shareId', (req, res) => {
 
 /**
  * GET /share
- * Main product share endpoint - handles clicks on share links
+ * Main product share endpoint - handles clicks on share links with SEO meta tags
  * Query params: id, shareId, ref, userId, utm_*
  */
 router.get('/share', (req, res) => {
@@ -108,8 +109,19 @@ router.get('/share', (req, res) => {
     
     console.log(`📱 Redirecting ${platform} user to:`, redirectUrl);
     
-    // Redirect user
-    res.redirect(redirectUrl);
+    // Get product metadata for SEO
+    const productMetadata = productMetadataService.getProductMetadata(id);
+    
+    // Generate HTML page with SEO meta tags
+    const html = deepLinkService.generateSharePageHTML({
+      metadata: productMetadata,
+      redirectUrl,
+      id,
+    });
+    
+    // Send HTML response instead of direct redirect
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
   } catch (error) {
     console.error('❌ Error handling share click:', error);
     res.status(500).send('Error processing share link');
@@ -227,7 +239,6 @@ router.get('/product/:productId', (req, res) => {
     const { clickId, ref } = req.query;
     
     const userAgent = req.headers['user-agent'] || '';
-    const platform = deepLinkService.detectPlatform(userAgent);
     
     // If no clickId, create one
     let finalClickId = clickId;

@@ -6,7 +6,6 @@
 
 import express from 'express';
 import productShareService from '../services/product-share.service.js';
-import deepLinkService from '../services/deep-link.service.js';
 
 const router = express.Router();
 
@@ -114,6 +113,55 @@ router.get('/click/:clickId', (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch click data',
+    });
+  }
+});
+
+/**
+ * POST /api/product/update-metadata
+ * Updates metadata for a product (for custom SEO)
+ * 
+ * Body:
+ * {
+ *   productId: string (required)
+ *   title: string (optional)
+ *   description: string (optional)
+ *   image: string (optional)
+ * }
+ */
+router.post('/update-metadata', (req, res) => {
+  try {
+    const { productId, title, description, image } = req.body;
+    
+    if (!productId) {
+      return res.status(400).json({
+        success: false,
+        error: 'productId is required',
+      });
+    }
+    
+    // TODO: In production, save to database
+    // For now, return success with the metadata
+    const metadata = {
+      productId,
+      title: title || `Sản phẩm #${productId} | FAI-X`,
+      description: description || `Xem chi tiết sản phẩm ${productId} trên FAI-X`,
+      image: image || 'https://app-faix.vercel.app/images/default-share.jpg',
+      updatedAt: new Date().toISOString(),
+    };
+    
+    console.log('✅ Updated product metadata:', metadata);
+    
+    res.json({
+      success: true,
+      data: metadata,
+      message: 'Metadata updated successfully (Note: In-memory only, implement database storage for production)',
+    });
+  } catch (error) {
+    console.error('❌ Error updating metadata:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update metadata',
     });
   }
 });
