@@ -55,12 +55,12 @@ router.get('/s/:shareId', (req, res) => {
 /**
  * GET /share
  * Main product share endpoint - handles clicks on share links
- * Query params: productId, shareId, ref, userId, utm_*
+ * Query params: id, shareId, ref, userId, utm_*
  */
 router.get('/share', (req, res) => {
   try {
     const {
-      productId,
+      id,
       shareId,
       ref,
       userId,
@@ -72,8 +72,8 @@ router.get('/share', (req, res) => {
     } = req.query;
     
     // Validate required fields
-    if (!productId) {
-      return res.status(400).send('Missing productId parameter');
+    if (!id) {
+      return res.status(400).send('Missing id parameter');
     }
     
     // Get request metadata
@@ -83,7 +83,7 @@ router.get('/share', (req, res) => {
     
     // Process the share click
     const clickData = productShareService.processShareClick({
-      productId,
+      productId: id,
       shareId,
       ref,
       userId,
@@ -103,7 +103,7 @@ router.get('/share', (req, res) => {
       platform,
       clickId: clickData.id,
       ref,
-      productId,
+      id,
     });
     
     console.log(`📱 Redirecting ${platform} user to:`, redirectUrl);
@@ -159,11 +159,11 @@ router.get('/invite', (req, res) => {
 /**
  * GET /open
  * Landing page that attempts to open the app
- * Query params: clickId, ref, productId
+ * Query params: clickId, ref, id
  */
 router.get('/open', (req, res) => {
   try {
-    const { clickId, ref, productId } = req.query;
+    const { clickId, ref, id } = req.query;
     const userAgent = req.headers['user-agent'] || '';
     const platform = deepLinkService.detectPlatform(userAgent);
     
@@ -171,7 +171,7 @@ router.get('/open', (req, res) => {
     const html = deepLinkService.generateLandingPageHTML({
       clickId,
       ref,
-      productId,
+      id,
       platform,
     });
     

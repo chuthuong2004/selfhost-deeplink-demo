@@ -20,16 +20,16 @@ class DeepLinkService {
    * @param {string} params.platform - Platform (android, ios, web)
    * @param {string} params.clickId - Click ID
    * @param {string} [params.ref] - Reference code
-   * @param {string} [params.productId] - Product ID
+   * @param {string} [params.id] - Resource ID
    * @returns {string} Redirect URL
    */
-  generateRedirectUrl({ platform, clickId, ref, productId }) {
+  generateRedirectUrl({ platform, clickId, ref, id }) {
     switch (platform) {
       case 'android':
-        return this._generateAndroidRedirect(clickId, ref, productId);
+        return this._generateAndroidRedirect(clickId, ref, id);
       
       case 'ios':
-        return this._generateIOSRedirect(clickId, ref, productId);
+        return this._generateIOSRedirect(clickId, ref, id);
       
       default:
         return storeConfig.landingPage;
@@ -41,10 +41,10 @@ class DeepLinkService {
    * @private
    * @param {string} clickId - Click ID
    * @param {string} [ref] - Reference code
-   * @param {string} [productId] - Product ID
+   * @param {string} [id] - Resource ID
    * @returns {string} Android Play Store URL
    */
-  _generateAndroidRedirect(clickId, ref, productId) {
+  _generateAndroidRedirect(clickId, ref, id) {
     const url = new URL(storeConfig.android);
     
     // Build referrer parameter for Install Referrer API
@@ -52,7 +52,7 @@ class DeepLinkService {
       click_id: clickId,
     };
     if (ref) referrerData.ref = ref;
-    if (productId) referrerData.product_id = productId;
+    if (id) referrerData.id = id;
     
     const referrerString = Object.entries(referrerData)
       .map(([key, value]) => `${key}%3D${encodeURIComponent(value)}`)
@@ -68,13 +68,13 @@ class DeepLinkService {
    * @private
    * @param {string} clickId - Click ID
    * @param {string} [ref] - Reference code
-   * @param {string} [productId] - Product ID
+   * @param {string} [id] - Resource ID
    * @returns {string} Landing page URL
    */
-  _generateIOSRedirect(clickId, ref, productId) {
+  _generateIOSRedirect(clickId, ref, id) {
     const params = new URLSearchParams({ clickId });
     if (ref) params.set('ref', ref);
-    if (productId) params.set('productId', productId);
+    if (id) params.set('id', id);
     
     return `https://${serverConfig.domain}/open?${params.toString()}`;
   }
@@ -85,13 +85,13 @@ class DeepLinkService {
    * @returns {string} JavaScript code
    */
   generateAppOpeningScript(params) {
-    const { clickId, ref, productId, platform } = params;
+    const { clickId, ref, id, platform } = params;
     
     return `
       (function() {
         const clickId = ${JSON.stringify(clickId || '')};
         const ref = ${JSON.stringify(ref || '')};
-        const productId = ${JSON.stringify(productId || '')};
+        const id = ${JSON.stringify(id || '')};
         const platform = ${JSON.stringify(platform)};
         const appScheme = ${JSON.stringify(appConfig.scheme)};
         const appPackage = ${JSON.stringify(appConfig.package)};
@@ -100,8 +100,8 @@ class DeepLinkService {
         
         // Build deep link path
         let deepLinkPath = 'invite';
-        if (productId) {
-          deepLinkPath = 'product/' + productId;
+        if (id) {
+          deepLinkPath = 'product/' + id;
         }
         
         // Build query parameters
@@ -182,7 +182,7 @@ class DeepLinkService {
    * @returns {string} HTML content
    */
   generateLandingPageHTML(params) {
-    const { clickId, ref, productId, platform } = params;
+    const { clickId, ref, id, platform } = params;
     const script = this.generateAppOpeningScript(params);
     
     return `<!DOCTYPE html>
@@ -324,10 +324,10 @@ class DeepLinkService {
       Mở ứng dụng ngay
     </button>
     
-    ${productId ? `
+    ${id ? `
     <div class="info">
       <div class="info-item">
-        <strong>Sản phẩm:</strong> #${productId}
+        <strong>Sản phẩm:</strong> #${id}
       </div>
     </div>
     ` : ''}
